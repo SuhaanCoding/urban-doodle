@@ -34,8 +34,8 @@ def fetch_osm_buildings(bbox: tuple, timeout: int = 25) -> list[dict]:
     for el in data.get("elements", []):
         if el["type"] != "way":
             continue
-        coords = [nodes[nid] for nid in el.get("nodes", []) if nid in nodes]
-        if len(coords) < 4:
+        coords = [nodes[nid] for nid in el.get("nodes", []) if nid in nodes] #unpacking coords
+        if len(coords) < 4: #shape check. it is 4 as its a loop
             continue
         try:
             poly = Polygon(coords)
