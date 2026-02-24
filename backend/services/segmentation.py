@@ -23,7 +23,7 @@ def segment_tile(image_bgr: np.ndarray, hf_token: str) -> dict[str, np.ndarray] 
     """
     Send a satellite tile to the HuggingFace SegFormer api and get binary masks back
     """
-    # HF API expects raw image bytes — convert BGR → RGB → JPEG
+    # HF wants JPEG bytes cv2 gives us BGR so flip it first
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     buf = io.BytesIO()
     Image.fromarray(image_rgb).save(buf, format="JPEG", quality=90)
@@ -57,7 +57,6 @@ def segment_tile(image_bgr: np.ndarray, hf_token: str) -> dict[str, np.ndarray] 
         if not mask_b64:
             continue
 
-        # Match label to a detected keyword via list comprehension
         matched = next((kw for kw in LABELS_TO_DETECT if kw in label), None)
         if matched is None:
             continue
