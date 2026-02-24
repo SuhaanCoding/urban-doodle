@@ -6,13 +6,11 @@ A working prototype of an "AI Data Layers" feature four feasibility layers that 
 
 ---
 
-![Draw a polygon](docs/draw.png)
+![Draw a polygon](frontend\public\Selection.png)
 
-![Analysis layers and building popup](docs/analysis.png)
+![Analysis layers and building popup](frontend\public\Screenshot 2026-02-23 213143.png)
 
-![Detailed results — costs, buildable area, development value](docs/results.png)
-
----
+## ![Detailed results — costs, buildable area, development value](frontend\public\Screenshot 2026-02-23 213118.png)
 
 ## Features
 
