@@ -13,11 +13,10 @@ LABEL_GROUPS: dict[str, list[str]] = {
 }
 
 CATEGORY_COLORS = {
-    "crz":         "#ef4444",  # red
-    "impervious":  "#6b7280",  # grey
-    "demolition":  "#f97316",  # orange
-    "steep_slope": "#eab308",  # yellow
-    "landuse":     "#3b82f6",  # blue
+    "crz":        "#ef4444",  # red
+    "impervious": "#6b7280",  # grey
+    "demolition": "#f97316",  # orange
+    "landuse":    "#3b82f6",  # blue
 }
 
 FT_PER_M = 3.28084
@@ -421,8 +420,6 @@ def merge_and_clip_features(all_features: list[dict],user_polygon, settings=None
         "impervious_budget_remaining_sqft": remaining_sqft,
         "impervious_post_demo_sqft": impervious_post_demo_sqft,
         "impervious_post_demo_pct": impervious_post_demo_pct,
-        "steep_slope_sqft": 0.0,
-        "steep_slope_pct": 0.0,
         "demo_sqft": demo_sqft_total,
         "demo_cost_estimate": round(demo_cost_total_val, 2),
         "demo_cost_base": round(demo_cost_base_total, 2),
