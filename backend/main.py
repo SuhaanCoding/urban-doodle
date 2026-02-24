@@ -50,7 +50,7 @@ def process_tile(tile: dict) -> list[dict]:
 
 @app.get("/")
 def read_root():
-    return {"message": "Cedar Feasibility Suite API, POST /analyze"}
+    return {"message": "Urban Doodle API, POST /analyze"}
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
