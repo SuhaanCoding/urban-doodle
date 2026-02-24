@@ -6,7 +6,7 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
@@ -16,4 +16,36 @@ body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+input:focus {
+  outline: 2px solid #374151;
+  outline-offset: 2px;
+}
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #f3f4f6 !important;
+}
+.mapboxgl-popup-close-button {
+  font-size: 18px !important;
+  color: #9ca3af !important;
+  padding: 8px 12px !important;
+  line-height: 1 !important;
+}
+.mapboxgl-popup-close-button:hover {
+  color: #111827 !important;
+  background: none !important;
 }

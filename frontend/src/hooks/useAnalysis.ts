@@ -5,18 +5,14 @@ import type {
   CategoryType,
   LayerVisibility,
   UserPolygon,
+  UserSettings,
 } from "../types";
+import { DEFAULT_SETTINGS } from "../types";
 
 export function useAnalysis() {
   const [state, setState] = useState<AnalysisState>({ status: "idle" });
-  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
-    vegetation: true,
-    water: true,
-    buildings: true,
-    roads: true,
-    bare_soil: true,
-    other: true,
-  });
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({});
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
 
   const startDrawing = () => setState({ status: "drawing" });
 
@@ -34,7 +30,12 @@ export function useAnalysis() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(polygon),
+          body: JSON.stringify({
+            type: polygon.type,
+            geometry: polygon.geometry,
+            properties: polygon.properties,
+            settings,
+          }),
         }
       );
 
@@ -59,27 +60,26 @@ export function useAnalysis() {
 
   const clear = () => {
     setState({ status: "idle" });
-    setLayerVisibility({
-      vegetation: true,
-      water: true,
-      buildings: true,
-      roads: true,
-      bare_soil: true,
-      other: true,
-    });
+    setLayerVisibility({});
   };
 
   const toggleLayer = (category: CategoryType) => {
     setLayerVisibility((prev) => ({ ...prev, [category]: !prev[category] }));
   };
 
+  const updateSettings = (partial: Partial<UserSettings>) => {
+    setSettings((prev) => ({ ...prev, ...partial }));
+  };
+
   return {
     state,
     layerVisibility,
+    settings,
     startDrawing,
     setPolygon,
     analyze,
     clear,
     toggleLayer,
+    updateSettings,
   };
 }

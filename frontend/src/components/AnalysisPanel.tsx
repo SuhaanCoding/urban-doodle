@@ -1,57 +1,74 @@
-import type { AnalysisState } from "../types";
+import { useState } from "react";
+import type { AnalysisState, LayerVisibility, UserSettings, CategoryType } from "../types";
+import LayerToggles from "./LayerToggles";
+import StatsCard from "./StatsCard";
+import SettingsPanel from "./SettingsPanel";
 
 interface AnalysisPanelProps {
   state: AnalysisState;
+  layerVisibility: LayerVisibility;
+  settings: UserSettings;
   onDrawStart: () => void;
   onAnalyze: () => void;
   onClear: () => void;
+  onToggleLayer: (category: CategoryType) => void;
+  onUpdateSettings: (partial: Partial<UserSettings>) => void;
 }
 
 export default function AnalysisPanel({
   state,
+  layerVisibility,
+  settings,
   onDrawStart,
   onAnalyze,
   onClear,
+  onToggleLayer,
+  onUpdateSettings,
 }: AnalysisPanelProps) {
+  const [activeTab, setActiveTab] = useState<"results" | "settings">("results");
+
+  const isComplete = state.status === "complete";
+
   return (
     <div
       style={{
-        width: "350px",
-        height: "100vh",
-        backgroundColor: "#fafafa",
-        padding: "24px",
-        boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
+        position: "fixed",
+        top: "24px",
+        left: "24px",
+        width: "340px",
+        maxHeight: "calc(100vh - 48px)",
+        overflowY: "auto",
+        backgroundColor: "#FFFFFF",
+        borderRadius: "12px",
+        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        zIndex: 10,
       }}
     >
-      {/* Header */}
-      <div>
-        <h1
+      <div style={{ padding: "20px 20px 16px" }}>
+        <div
           style={{
-            margin: 0,
-            fontSize: "32px",
-            fontFamily: "'Freckle Face', cursive",
-            fontWeight: "400",
-            color: "#f59e0b",
-            letterSpacing: "2px",
-            textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
+            fontSize: "14px",
+            fontWeight: 700,
+            color: "#111827",
+            letterSpacing: "-0.01em",
+            marginBottom: "8px",
           }}
         >
           Urban Doodle
-        </h1>
+        </div>
         <p
           style={{
-            margin: "8px 0 0 0",
-            fontSize: "14px",
-            color: "#6b7280",
+            margin: 0,
+            fontSize: "13px",
+            color: "#6B7280",
+            lineHeight: "1.4",
           }}
         >
           {state.status === "idle" && "Draw a zone to analyze land cover"}
-          {state.status === "drawing" &&
-            "Click on the map to draw vertices. Double click to finish."}
+          {state.status === "drawing" && "Click to draw vertices. Double-click to finish."}
           {state.status === "ready" && "Zone drawn. Ready to analyze."}
           {state.status === "analyzing" && "Analyzing satellite imagery..."}
           {state.status === "complete" && "Analysis complete"}
@@ -59,56 +76,19 @@ export default function AnalysisPanel({
         </p>
       </div>
 
-      {/* Action Buttons */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ padding: "0 20px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
         {state.status === "idle" && (
-          <button
-            onClick={onDrawStart}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#f59e0b",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "16px",
-              fontWeight: "500",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={onDrawStart} style={primaryBtnStyle}>
             Draw Zone
           </button>
         )}
 
         {state.status === "ready" && (
           <>
-            <button
-              onClick={onAnalyze}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#f59e0b",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "16px",
-                fontWeight: "500",
-                cursor: "pointer",
-              }}
-            >
+            <button onClick={onAnalyze} style={primaryBtnStyle}>
               Analyze Zone
             </button>
-            <button
-              onClick={onClear}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "white",
-                color: "#6b7280",
-                border: "1px solid #d1d5db",
-                borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: "pointer",
-              }}
-            >
+            <button onClick={onClear} style={secondaryBtnStyle}>
               Clear
             </button>
           </>
@@ -117,11 +97,12 @@ export default function AnalysisPanel({
         {state.status === "analyzing" && (
           <div
             style={{
-              padding: "12px 24px",
-              backgroundColor: "#e5e7eb",
+              padding: "10px 16px",
+              backgroundColor: "#F9FAFB",
               borderRadius: "6px",
               textAlign: "center",
-              color: "#6b7280",
+              color: "#6B7280",
+              fontSize: "13px",
             }}
           >
             Processing...
@@ -129,19 +110,7 @@ export default function AnalysisPanel({
         )}
 
         {state.status === "complete" && (
-          <button
-            onClick={onClear}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "white",
-              color: "#6b7280",
-              border: "1px solid #d1d5db",
-              borderRadius: "6px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={onClear} style={secondaryBtnStyle}>
             Clear & Start Over
           </button>
         )}
@@ -150,179 +119,134 @@ export default function AnalysisPanel({
           <>
             <div
               style={{
-                padding: "12px",
-                backgroundColor: "#fee2e2",
+                padding: "10px 12px",
+                backgroundColor: "#FEF2F2",
+                border: "1px solid #FECACA",
                 borderRadius: "6px",
-                color: "#dc2626",
-                fontSize: "14px",
+                color: "#DC2626",
+                fontSize: "13px",
+                lineHeight: "1.4",
               }}
             >
               {state.message}
             </div>
-            <button
-              onClick={onClear}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#f59e0b",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: "pointer",
-              }}
-            >
+            <button onClick={onClear} style={primaryBtnStyle}>
               Try Again
             </button>
           </>
         )}
       </div>
 
-      {/* Results */}
-      {state.status === "complete" && (
+      {isComplete && (
         <div
           style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "16px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            borderTop: "1px solid #F3F4F6",
+            padding: "12px 20px",
           }}
         >
-          <h3
+          <div
             style={{
-              margin: "0 0 16px 0",
-              fontSize: "16px",
-              fontWeight: "600",
-              color: "#1f2937",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#374151",
+              marginBottom: "8px",
             }}
           >
-            Zone Analysis Results
-          </h3>
+            Layers
+          </div>
+          <LayerToggles layerVisibility={layerVisibility} onToggle={onToggleLayer} />
+        </div>
+      )}
 
-          <div style={{ fontSize: "14px", color: "#6b7280" }}>
-            <div style={{ marginBottom: "8px" }}>
-              <strong style={{ color: "#1f2937" }}>Total Area:</strong>{" "}
-              {state.result.metadata.total_area_sqft.toLocaleString()} sq ft
-            </div>
-            <div style={{ fontSize: "12px", marginBottom: "16px" }}>
-              ({(state.result.metadata.total_area_sqft / 43560).toFixed(2)}{" "}
-              acres)
-            </div>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-            >
-              {state.result.metadata.vegetation_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#22c55e", marginRight: "8px" }}>
-                      ●
-                    </span>
-                    Vegetation
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.vegetation_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {state.result.metadata.water_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#3b82f6", marginRight: "8px" }}>
-                      ●
-                    </span>
-                    Water
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.water_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {state.result.metadata.buildings_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#ef4444", marginRight: "8px" }}>
-                      ■
-                    </span>
-                    Buildings
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.buildings_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {state.result.metadata.roads_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#6b7280", marginRight: "8px" }}>
-                      ■
-                    </span>
-                    Roads
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.roads_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {state.result.metadata.bare_soil_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#d97706", marginRight: "8px" }}>
-                      ●
-                    </span>
-                    Bare Soil
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.bare_soil_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {state.result.metadata.other_pct > 0 && (
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span>
-                    <span style={{ color: "#a3a3a3", marginRight: "8px" }}>
-                      □
-                    </span>
-                    Other
-                  </span>
-                  <span style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {state.result.metadata.other_pct.toFixed(1)}%
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div
+      {isComplete && (
+        <div
+          style={{
+            display: "flex",
+            padding: "0 20px",
+          }}
+        >
+          {(["results", "settings"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               style={{
-                marginTop: "16px",
-                paddingTop: "16px",
-                borderTop: "1px solid #e5e7eb",
-                fontSize: "12px",
+                flex: 1,
+                padding: "10px 0",
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: activeTab === tab ? 600 : 400,
+                color: activeTab === tab ? "#111827" : "#9CA3AF",
+                borderBottom: activeTab === tab ? "2px solid #1F2937" : "2px solid transparent",
+                transition: "color 150ms ease, border-color 150ms ease",
+                textTransform: "capitalize",
               }}
             >
-              Processed {state.result.metadata.tiles_processed} tiles in{" "}
-              {(state.result.metadata.processing_time_ms / 1000).toFixed(1)}s
-            </div>
-          </div>
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isComplete && (
+        <div style={{ padding: "20px" }}>
+          {activeTab === "results" && <StatsCard metadata={state.result.metadata} />}
+          {activeTab === "settings" && (
+            <SettingsPanel settings={settings} onChange={onUpdateSettings} />
+          )}
+        </div>
+      )}
+
+      {!isComplete && activeTab === "settings" && (
+        <div style={{ padding: "20px" }}>
+          <SettingsPanel settings={settings} onChange={onUpdateSettings} />
+        </div>
+      )}
+
+      {!isComplete && state.status !== "analyzing" && (
+        <div style={{ padding: "0 20px 16px" }}>
+          <button
+            onClick={() => setActiveTab(activeTab === "settings" ? "results" : "settings")}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "13px",
+              color: "#6B7280",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            {activeTab === "settings" ? "← Back" : "⚙ Settings"}
+          </button>
         </div>
       )}
     </div>
   );
 }
+
+const primaryBtnStyle: React.CSSProperties = {
+  padding: "10px 20px",
+  backgroundColor: "#1F2937",
+  color: "#FFFFFF",
+  border: "none",
+  borderRadius: "6px",
+  fontSize: "14px",
+  fontWeight: 500,
+  cursor: "pointer",
+  width: "100%",
+  transition: "background-color 150ms ease",
+};
+
+const secondaryBtnStyle: React.CSSProperties = {
+  padding: "10px 20px",
+  backgroundColor: "#FFFFFF",
+  color: "#374151",
+  border: "1px solid #D1D5DB",
+  borderRadius: "6px",
+  fontSize: "14px",
+  fontWeight: 500,
+  cursor: "pointer",
+  width: "100%",
+  transition: "background-color 150ms ease",
+};
