@@ -20,7 +20,7 @@ from models import (
 from services.tile_fetcher import compute_tile_grid, fetch_satellite_tile
 from services.segmentation import segment_tile
 from services.geo_converter import masks_to_geojson, apply_crz_buffer, merge_and_clip_features
-from services.osm_buildings import fetch_osm_buildings
+from services.osm_fetcher import fetch_osm_features
 
 load_dotenv() 
 MAPBOX_TOKEN = os.getenv("MAPBOX_ACCESS_TOKEN", "")
@@ -70,10 +70,9 @@ async def analyze(body: AnalyzeRequest) -> AnalyzeResponse:
         if len(tiles) > 50:
             raise HTTPException(400, "Analysis zone too large, please draw a smaller area")
 
-        #OSM, ML is inaccurate in comparison but the tradeoff I saw was historical consistency
-        osm_features = fetch_osm_buildings(bbox)
+        # single query hits buildings + roads + trees + landuse, way less likely to 429
+        osm_features = fetch_osm_features(bbox)
 
-        # Fetch + segment all tiles in parallel
         all_features: list[dict] = []
         with ThreadPoolExecutor(max_workers=50) as executor:
             futures = [executor.submit(process_tile, tile) for tile in tiles]
@@ -82,14 +81,12 @@ async def analyze(body: AnalyzeRequest) -> AnalyzeResponse:
 
         all_features.extend(osm_features)
 
-        # Merge everything across tiles and clip to user polygon
         final_features, metadata = merge_and_clip_features(
-            all_features, user_polygon
+            all_features, user_polygon, settings=body.settings
         )
 
         processing_time_ms = (time.time() - start_time) * 1000
 
-        # Convert raw feature dicts to Pydantic models
         detected = [
             DetectedFeature(
                 type="Feature",
@@ -97,11 +94,7 @@ async def analyze(body: AnalyzeRequest) -> AnalyzeResponse:
                     type=f["geometry"]["type"],
                     coordinates=f["geometry"]["coordinates"],
                 ),
-                properties=FeatureProperties(
-                    category=f["properties"]["category"],
-                    area_sqft=f["properties"]["area_sqft"],
-                    color=f["properties"]["color"],
-                ),
+                properties=FeatureProperties(**f["properties"]),
             )
             for f in final_features
         ]
